@@ -52,18 +52,30 @@ export default {
   }),
 
   methods: {
+    /**
+     * Open modal to create new list
+     */
     openAddListModal () {
       this.addListModalVisible = true
     },
 
+    /**
+     * Close modal to create new list
+     */
     closeAddListModal () {
       this.addListModalVisible = false
     },
 
+    /**
+     * Allow to open/see/modify a list
+     */
     openList (listId) {
       this.$router.push({ name: 'list', params: { id: listId } })
     },
 
+    /**
+     * Remove a list
+     */
     removeList (listId) {
       this.$store.commit('REMOVE_LIST', listId)
     }
