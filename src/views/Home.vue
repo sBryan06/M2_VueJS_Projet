@@ -35,6 +35,9 @@ export default {
   name: 'home',
 
   methods: {
+    /**
+     * Allow to see the last modified list
+     */
     openLastModifiedList () {
       this.$router.push({ name: 'list', params: { id: this.lastModifiedList.id } })
     }
