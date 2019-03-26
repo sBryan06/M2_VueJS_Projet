@@ -17,12 +17,13 @@
           <el-button type="primary" @click="addItem">Ajouter</el-button>
         </el-col>
         <el-col :span="12" style="display: flex; justify-content: flex-end; align-items: center;">
-          <el-input-number placeholder="Entrez quelque chose" v-model="budget">
-          </el-input-number>
+          Budget: &nbsp;
+          <el-input-number placeholder="Entrez quelque chose" v-model="data.budget" :min="0" controls-position="right" :precision="2"/>
+          &nbsp; €
         </el-col>
       </el-row>
 
-      <liste-view :items="data.items" class="liste-view"/>
+      <list-view :items="data.items" class="liste-view"/>
 
       <el-tag :type="budgetError ? 'danger': 'info'" class="total-price"> Total : {{currentTotal}} €</el-tag>
     </div>
@@ -31,29 +32,27 @@
 </template>
 
 <script>
-import ListeView from '@/components/ListeView.vue'
+import ListView from '@/components/ListView.vue'
 
 export default {
-  name: 'liste',
-
-  props: {
-    data: {
-      type: Object,
-      required: true
-    }
-  },
+  name: 'List',
 
   components: {
-    ListeView
+    ListView
   },
 
   data: () => ({
     form: {
       newItem: ''
     },
-    budget: 50,
-    suggestions: []
+    suggestions: [],
+    lists: []
   }),
+
+  created () {
+    this.lists = JSON.parse(localStorage.getItem('lists')) || []
+    this.suggestions = JSON.parse(localStorage.getItem('suggestions')) || []
+  },
 
   methods: {
     /**
@@ -80,6 +79,7 @@ export default {
       )
       if (!found) {
         this.suggestions.push({ value: name })
+        localStorage.setItem('suggestions', JSON.stringify(this.suggestions))
       }
     },
 
@@ -96,11 +96,29 @@ export default {
   },
   computed: {
     currentTotal () {
-      return this.data.items.reduce((acc, current) => current.checked ? (acc += current.price) : acc, 0)
+      if (this.data.items) {
+        return parseFloat(this.data.items.reduce((acc, current) => current.checked ? (acc += parseFloat(current.price)) : acc, 0).toFixed(2))
+      } else {
+        return 0
+      }
     },
 
     budgetError () {
-      return this.budget < this.currentTotal
+      return this.data.budget < this.currentTotal
+    },
+
+    data () {
+      const index = this.lists.findIndex(list => list.id === this.$route.params.id)
+      return this.lists[index]
+    }
+  },
+  watch: {
+    data: {
+      handler () {
+        localStorage.setItem('lists', JSON.stringify(this.lists))
+        localStorage.setItem('lastModifiedList', JSON.stringify(this.data))
+      },
+      deep: true
     }
   }
 }

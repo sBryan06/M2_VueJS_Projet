@@ -1,31 +1,53 @@
 <template>
   <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
-    <router-view/>
+
+<!-- @select="handleSelectItem" -->
+    <el-menu class="nav" mode="horizontal"
+      :router="true"
+      default-active="/"
+      background-color="#545c64"
+      text-color="#fff"
+      active-text-color="#00b2ff">
+      <el-menu-item index="/" :route="{name: 'home'}">
+        <i class="el-icon-menu"></i>
+        <span slot="title">Accueil</span>
+      </el-menu-item>
+      <el-menu-item index="/lists" :route="{name: 'lists'}">
+        <i class="el-icon-document"></i>
+        <span slot="title">Mes listes</span>
+      </el-menu-item>
+      <el-menu-item index="/about" :route="{name: 'about'}">
+        <i class="el-icon-info"></i>
+        <span slot="title">A propos</span>
+      </el-menu-item>
+    </el-menu>
+
+    <router-view class="app-content"/>
   </div>
 </template>
 
 <style>
+body {
+  padding: 0;
+  margin: 0;
+}
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
+  /* text-align: center; */
   color: #2c3e50;
-}
-#nav {
-  padding: 30px;
+  /* display: flex; */
 }
 
-#nav a {
-  font-weight: bold;
-  color: #2c3e50;
+.app-content {
+  width: 100%;
+  padding: 10px;
 }
 
-#nav a.router-link-exact-active {
-  color: #42b983;
+.align-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>
