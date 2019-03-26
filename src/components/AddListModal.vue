@@ -44,13 +44,20 @@ export default {
         items: [],
         budget: 50
       }
-      this.$emit('add-list', newList)
+
+      if (newList.hasOwnProperty('id') && newList.hasOwnProperty('title') && newList.hasOwnProperty('items')) {
+        this.$store.commit('ADD_LIST', newList)
+      }
 
       this.closeDialog()
     }
   },
 
   computed: {
+    /**
+     * Check if form is valid
+     * Allow to disable Add button, if invalid and submit only if is valid
+     */
     formIsValid () {
       return this.form.name !== null && this.form.name.trim() !== ''
     }

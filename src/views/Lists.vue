@@ -4,7 +4,8 @@
     <el-button type="primary" icon="el-icon-plus" @click="openAddListModal">Ajouter une liste</el-button>
     <el-table
       :data="filteredLists"
-      style="width: 50%">
+      style="width: 50%"
+      empty-text="Aucune liste">
       <el-table-column
         label="Titre"
         prop="title">
@@ -12,12 +13,7 @@
       <el-table-column
         align="right">
         <template slot="header">
-          <!-- <el-input
-            v-model="search"
-            size="mini"
-            @change="filteredLists"
-            placeholder="Type to search"/> -->
-            <input type="text" v-model="search" placeholder="Search title.." class="filter-search-input"/>
+          <input type="text" v-model="search" placeholder="Search title.." class="filter-search-input"/>
         </template>
         <template slot-scope="scope">
           <el-button
@@ -28,7 +24,7 @@
           <el-button
             size="small"
             type="danger"
-            @click="removeFromList(scope.row.id)"
+            @click="removeList(scope.row.id)"
             icon="el-icon-delete"
             circle></el-button>
         </template>
@@ -36,7 +32,7 @@
     </el-table>
 
     <!-- modal pour ajouter une liste -->
-    <add-list-modal v-if="addListModalVisible" @close="closeAddListModal" @add-list="addList" />
+    <add-list-modal v-if="addListModalVisible" @close="closeAddListModal"/>
   </div>
 </template>
 
@@ -51,14 +47,9 @@ export default {
   },
 
   data: () => ({
-    lists: [],
     search: '',
     addListModalVisible: false
   }),
-
-  mounted () {
-    this.lists = JSON.parse(localStorage.getItem('lists')) || []
-  },
 
   methods: {
     openAddListModal () {
@@ -70,34 +61,17 @@ export default {
     },
 
     openList (listId) {
-      console.log(listId)
       this.$router.push({ name: 'list', params: { id: listId } })
     },
 
-    addList (newList) {
-      if (newList.hasOwnProperty('id') && newList.hasOwnProperty('title') && newList.hasOwnProperty('items')) {
-        this.lists.push(newList)
-      }
-    },
-
-    removeFromList (listId) {
-      const index = this.lists.findIndex(list => list.id === listId)
-      this.lists.splice(index, 1)
+    removeList (listId) {
+      this.$store.commit('REMOVE_LIST', listId)
     }
   },
 
   computed: {
     filteredLists () {
-      return this.lists.filter(data => data.title.toLowerCase().includes(this.search.toLowerCase()))
-    }
-  },
-
-  watch: {
-    lists: {
-      handler () {
-        localStorage.setItem('lists', JSON.stringify(this.lists))
-      },
-      deep: true
+      return this.$store.getters.filteredLists(this.search)
     }
   }
 }

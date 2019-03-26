@@ -18,12 +18,12 @@
         </el-col>
         <el-col :span="12" style="display: flex; justify-content: flex-end; align-items: center;">
           Budget: &nbsp;
-          <el-input-number placeholder="Entrez quelque chose" v-model="data.budget" :min="0" controls-position="right" :precision="2"/>
+          <el-input-number placeholder="Entrez quelque chose" v-model="budget" :min="0" controls-position="right" :precision="2"/>
           &nbsp; €
         </el-col>
       </el-row>
 
-      <list-view :items="data.items" class="liste-view"/>
+      <list-view :items="listItems" class="liste-view"/>
 
       <el-tag :type="budgetError ? 'danger': 'info'" class="total-price"> Total : {{currentTotal}} €</el-tag>
     </div>
@@ -33,6 +33,7 @@
 
 <script>
 import ListView from '@/components/ListView.vue'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'List',
@@ -44,15 +45,8 @@ export default {
   data: () => ({
     form: {
       newItem: ''
-    },
-    suggestions: [],
-    lists: []
+    }
   }),
-
-  created () {
-    this.lists = JSON.parse(localStorage.getItem('lists')) || []
-    this.suggestions = JSON.parse(localStorage.getItem('suggestions')) || []
-  },
 
   methods: {
     /**
@@ -65,7 +59,8 @@ export default {
           checked: false,
           price: 0
         }
-        this.data.items.push(c)
+
+        this.listItems.push(c)
 
         this.enrichSuggestions(this.form.newItem)
 
@@ -73,50 +68,96 @@ export default {
       }
     },
 
+    /**
+     * Allow to enrich suggestions
+     */
     enrichSuggestions (name) {
       var found = this.suggestions.find(
         sugestion => sugestion.value.toLowerCase() === name.toLowerCase()
       )
       if (!found) {
-        this.suggestions.push({ value: name })
-        localStorage.setItem('suggestions', JSON.stringify(this.suggestions))
+        this.$store.commit('ADD_SUGGESTION', name)
       }
     },
 
+    /**
+     * Callback when a item is selected in autocomplete
+     */
     handleSelect (item) {
       this.addItem()
     },
+
+    /**
+     * Return the result for autocomplete
+     */
     querySearch (queryString, cb) {
       var suggestions = this.suggestions
       var results = queryString ? suggestions.filter(sugg => sugg.value.toLowerCase().includes(queryString.toLowerCase())) : suggestions
-      // call callback function to return suggestions
-      console.log(results)
       cb(results)
     }
   },
   computed: {
+    ...mapGetters([
+      'suggestions'
+    ]),
+
+    /**
+     * Compute the total price of checked items
+     */
     currentTotal () {
       if (this.data.items) {
-        return parseFloat(this.data.items.reduce((acc, current) => current.checked ? (acc += parseFloat(current.price)) : acc, 0).toFixed(2))
+        return parseFloat(this.listItems.reduce((acc, current) => current && current.checked ? (acc += parseFloat(current.price)) : acc, 0).toFixed(2))
       } else {
         return 0
       }
     },
 
+    /**
+     * Check if total is greater than budget
+     */
     budgetError () {
-      return this.data.budget < this.currentTotal
+      return this.budget < this.currentTotal
     },
 
+    /**
+     * Get data for list
+     */
     data () {
-      const index = this.lists.findIndex(list => list.id === this.$route.params.id)
-      return this.lists[index]
+      return this.$store.getters.getListById(this.$route.params.id)
+    },
+
+    /**
+     * Return the items of list
+     */
+    listItems () {
+      return this.data.items
+    },
+
+    /**
+     * Allow to get and set the budget of the list
+     */
+    budget: {
+      get () {
+        return this.data.budget
+      },
+      set (budget) {
+        this.$store.commit('UPDATE_LIST_BUDGET', {
+          listId: this.data.id,
+          budget: budget
+        })
+        this.$store.commit('UPDATE_LAST_MODIFIED_LIST', this.data.id)
+      }
     }
   },
+
   watch: {
-    data: {
+    listItems: {
       handler () {
-        localStorage.setItem('lists', JSON.stringify(this.lists))
-        localStorage.setItem('lastModifiedList', JSON.stringify(this.data))
+        this.$store.commit('UPDATE_LIST_ITEMS', {
+          listId: this.data.id,
+          items: this.listItems
+        })
+        this.$store.commit('UPDATE_LAST_MODIFIED_LIST', this.data.id)
       },
       deep: true
     }

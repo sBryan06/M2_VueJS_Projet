@@ -19,7 +19,6 @@
       </div>
       <span> {{lastModifiedList.title}}  </span>
     </el-card>
-
   </div>
 </template>
 
@@ -30,22 +29,21 @@
 </style>
 
 <script>
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'home',
-
-  data: () => ({
-    lastModifiedList: null
-  }),
-
-  mounted () {
-    this.lastModifiedList = JSON.parse(localStorage.getItem('lastModifiedList'))
-  },
 
   methods: {
     openLastModifiedList () {
       this.$router.push({ name: 'list', params: { id: this.lastModifiedList.id } })
     }
+  },
+
+  computed: {
+    ...mapGetters([
+      'lastModifiedList'
+    ])
   }
 }
 
